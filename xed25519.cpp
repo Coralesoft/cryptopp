@@ -954,7 +954,7 @@ bool ed25519Verifier::VerifyAndRestart(PK_MessageAccumulator &messageAccumulator
     ed25519_MessageAccumulator& accum = static_cast<ed25519_MessageAccumulator&>(messageAccumulator);
     const ed25519PublicKey& pk = dynamic_cast<const ed25519PublicKey&>(GetPublicKey());
     int ret = -1;
-    if (IsCanonicalScalar(accum.signature() + 32))
+    if (IsCanonicalScalar(accum.signature() + 32) && IsCanonicalY(pk.GetPublicKeyBytePtr()))
         ret = Donna::ed25519_sign_open(accum.data(), accum.size(), pk.GetPublicKeyBytePtr(), accum.signature());
     accum.Restart();
 
@@ -970,6 +970,9 @@ bool ed25519Verifier::VerifyStream(std::istream& stream, const byte *signature, 
         return false;
 
     const ed25519PublicKey& pk = static_cast<const ed25519PublicKey&>(GetPublicKey());
+    if (IsCanonicalY(pk.GetPublicKeyBytePtr()) == false)
+        return false;
+
     int ret = Donna::ed25519_sign_open(stream, pk.GetPublicKeyBytePtr(), signature);
 
     return ret == 0;
